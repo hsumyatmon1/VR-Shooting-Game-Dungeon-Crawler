@@ -1,3 +1,4 @@
+// Import necessary libraries and modules from external files
 import * as THREE from "../../libs/three/three.module.js";
 import { GLTFLoader } from "../../libs/three/jsm/GLTFLoader.js";
 import { RGBELoader } from "../../libs/three/jsm/RGBELoader.js";
@@ -10,29 +11,40 @@ import { Interactable } from "../../libs/Interactable.js";
 import { Player } from "../../libs/Player.js";
 import { LoadingBar } from "../../libs/LoadingBar.js";
 
+// Define the class named "App"
 class App {
     constructor() {
+        // Create a container (HTML div element) to hold the 3D scene
         const container = document.createElement("div");
         document.body.appendChild(container);
 
+        // Set the path to the assests folder
         this.assetsPath = "../../assets/";
 
+        // Create a camera with a perspective projection
         this.camera = new THREE.PerspectiveCamera(
             45,
             window.innerWidth / window.innerHeight,
             0.1,
             3000
         );
+
+        // Set the initial position of the camera
         this.camera.position.set(0, 1.6, 0);
 
+        // Create a 3D scene
         this.scene = new THREE.Scene();
 
-        const ambient = new THREE.HemisphereLight(0x555555, 0x999999);
+        // Add ambient light to the scene
+        const ambient = new THREE.HemisphereLight(0x000000, 0x111111);
         this.scene.add(ambient);
 
-        this.sun = new THREE.DirectionalLight(0xaaaaff, 2.5);
+        // Create a directional light (sun) with shadows
+        this.sun = new THREE.DirectionalLight(0x111111, 0.5);
         this.sun.castShadow = true;
 
+        // Configure the shadow settings for the light
+        // TODO: Need to fix the shadow going everywhere
         const lightSize = 5;
         this.sun.shadow.camera.near = 0.1;
         this.sun.shadow.camera.far = 17;
@@ -44,58 +56,85 @@ class App {
         this.sun.shadow.mapSize.width = 1024;
         this.sun.shadow.mapSize.height = 1024;
 
+        // Set the position of the sun
         this.sun.position.set(0, 10, 10);
         this.scene.add(this.sun);
 
+        // Portal and Teleport
         this.debug = { showPath: false, teleport: true };
 
+        // Create a WebGL renderer
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
+
+        // Set the renderer's pixel ratio to match the device's pixel ratio
         this.renderer.setPixelRatio(window.devicePixelRatio);
+
+        // Set the renderer's size to match the window's size
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+        // Enable shadows in the renderer
         this.renderer.shadowMap.enabled = true;
+
+        // Set the output encoding to sRGB for color correctness
         this.renderer.outputEncoding = THREE.sRGBEncoding;
+
+        // Attach the renderer's canvas element to the container
         container.appendChild(this.renderer.domElement);
-        this.setEnvironment();
 
+        // Initialize a working matrix and clock for time-based operations
         this.workingMatrix = new THREE.Matrix4();
-
         this.clock = new THREE.Clock();
 
+        // Initialize a raycaster to perfrom raycasting for intersection tests
+        this.raycaster = new THREE.Raycaster();
+
+        // Create a Stats object for performance monitoring
         this.stats = new Stats();
         container.appendChild(this.stats.dom);
 
+        // Create a loading bar to indicate progress during asset loading
         this.loadingBar = new LoadingBar();
 
+        // Load the environment (HDR environment map)
         this.loadEnvironment();
 
-        this.raycaster = new THREE.Raycaster();
-
+        // Set a flag to indicate that loading is in progress
         this.loading = true;
 
+        // Add a window resize event listener to adjust the rendering size on window resize
         window.addEventListener("resize", this.render.bind(this));
     }
+
+    // Methods
+
+    // Method to resize the camera and renderer based on window size
 
     resize() {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
-
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
+    // Method to set up the environment with an HDR environment map
+
     setEnvironment() {
+        // Create a loader for loading the HDR environment map
         const loader = new RGBELoader().setDataType(THREE.UnsignedByteType);
         const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
         pmremGenerator.compileEquirectangularShader();
 
         const self = this;
 
+        // Load the HDR environment map
         loader.load(
             "../../assets/hdr/venice_sunset_1k.hdr",
             (texture) => {
+                // Generate an environment map from the loaded texture
                 const envMap =
                     pmremGenerator.fromEquirectangular(texture).texture;
                 pmremGenerator.dispose();
 
+                // Set the environment for the scene
                 self.scene.environment = envMap;
             },
             undefined,
@@ -105,7 +144,11 @@ class App {
         );
     }
 
+    // Method to load the 3D environment model (glTF format)
+
+    // TODO: If have time can add more teleporting places here
     loadEnvironment() {
+        // Create a loader for loading glTF files
         const loader = new GLTFLoader().setPath(this.assetsPath);
         const self = this;
 
@@ -117,16 +160,23 @@ class App {
             "dungeon.glb",
             // called when the resource is loaded
             function (gltf) {
+                // Define a scale factor for the loaded model
+                // const scale = 0.5;
+
+                // Add the loaded scene to the main scene
                 self.scene.add(gltf.scene);
 
+                // Tranverse the loaded scent to perform operations on its children
                 gltf.scene.traverse(function (child) {
                     if (child.isMesh) {
+                        // Identify and process the "Navmesh" in the scene
                         if (child.name == "Navmesh") {
                             child.material.visible = false;
                             self.navmesh = child;
                             child.geometry.scale(0.5, 0.5, 0.5);
                             self.navmesh.scale.set(2, 2, 2);
                         } else {
+                            // To find the gun
                             if (child.name == "SD_Prop_Chest_Skull_Lid_01") {
                                 self.interactables.push(
                                     new Interactable(child, {
@@ -143,6 +193,7 @@ class App {
                                     })
                                 );
                             } else if (child.name == "Door_1") {
+                                // Teleport to another room
                                 self.interactables.push(
                                     new Interactable(child, {
                                         mode: "tweens",
@@ -164,11 +215,17 @@ class App {
                     }
                 });
 
+                // Define a scale factor for the loaded model
                 const scale = 0.5;
+
+                // Scale the entire loaded scene
                 gltf.scene.scale.set(scale, scale, scale);
 
+                // Initialize the portal paths
                 self.initPathfinding();
-                self.loadGhoul();
+
+                // Add the monsters
+                self.loadMonster();
             },
             // called while loading is progressing
             function (xhr) {
@@ -181,10 +238,11 @@ class App {
         );
     }
 
-    loadGhoul() {
+    loadMonster() {
         const loader = new GLTFLoader().setPath(this.assetsPath);
         const self = this;
 
+        // Add animations to the monsters
         const anims = [
             { start: 81, end: 161, name: "idle", loop: true },
             { start: 250, end: 290, name: "block", loop: false },
@@ -238,6 +296,7 @@ class App {
                     self.ghouls.push(ghoul);
                 });
 
+                // Call the method to initiate the game
                 self.initGame();
             },
             // called while loading is progressing
@@ -518,22 +577,31 @@ class App {
         return player;
     }
 
+    // Main rendering method to update the scene and render it to the canvas
+
     render() {
+        // Get the time difference (delta time) since the last frame
         const dt = this.clock.getDelta();
         const self = this;
 
+        // Update the position of the sun to follow the camera (for lighting purposes)
         this.sun.position.copy(this.dummyCam.position);
         this.sun.position.y += 10;
         this.sun.position.z += 10;
 
+        // Update the performance stats
         this.stats.update();
 
+        // Check if the VR is working properly
+
         if (this.renderer.xr.isPresenting) {
+            // Iterate through all teleportation points to update their states
             this.teleports.forEach((teleport) => {
                 teleport.selected = false;
                 teleport.update();
             });
 
+            // Iterate through all controllers to perform intersection tests
             this.controllers.forEach((controller) => {
                 self.intersectObjects(controller);
             });
@@ -542,6 +610,7 @@ class App {
                 interactable.update(dt)
             );
 
+            // Update the player character's movement
             this.player.update(dt);
 
             this.ghouls.forEach((ghoul) => {
@@ -549,8 +618,10 @@ class App {
             });
         }
 
+        // Render the scene with the camera using the WebGL renderer
         this.renderer.render(this.scene, this.camera);
     }
 }
 
+// Export the App class to make it accessible to other parts of the application
 export { App };

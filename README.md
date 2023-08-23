@@ -1,3 +1,3 @@
-# AR-Shooting-Game
+# VR-Shooting-Game - Dungeon Crawler
 
-Website: https://hsumyatmon1.github.io/AR-Shooting-Game/
+Website: https://hsumyatmon1.github.io/VR-Shooting-Game-Dungeon-Crawler/

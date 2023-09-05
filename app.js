@@ -6,7 +6,6 @@ import { XRControllerModelFactory } from "../../libs/three/jsm/XRControllerModel
 import { Pathfinding } from "../../libs/three/jsm/three-pathfinding.module.js";
 import { Stats } from "../../libs/stats.module.js";
 import { VRButton } from "../../libs/VRButton.js";
-import { TeleportMesh } from "../../libs/TeleportMesh.js";
 import { Interactable } from "../../libs/Interactable.js";
 import { Player } from "../../libs/Player.js";
 import { LoadingBar } from "../../libs/LoadingBar.js";
@@ -89,5 +88,9 @@ class App {
 
         // Add a window resize event listener to handle viewport changes.
         window.addEventListener("resize", this.render.bind(this));
+
+        // This end as the beginning of the JavaScript code that sets up a 3D environment using
+        // the Three.js library.The code imports various modules, creates a 3D scene,
+        // sets up lighting, and prepares for rendering in a web - based VR environment.
     }
 }

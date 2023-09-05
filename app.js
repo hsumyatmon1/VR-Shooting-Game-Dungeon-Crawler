@@ -343,26 +343,29 @@ class App {
     // and set up cloning for the character to allow multiple instances to share animations correctly.
     // We also handle random waypoint generation for the character's initial positions.
 
-        // Initialize pathfinding by defining waypoints and creating a navigation zone.
+    // Initialize pathfinding by defining waypoints and creating a navigation zone.
     initPathfinding() {
         // Define a list of waypoints (positions) for pathfinding.
         this.waypoints = [
             new THREE.Vector3(8.689, 2.687, 0.349),
             new THREE.Vector3(0.552, 2.589, -2.122),
-            new THREE.Vector3(-7.722, 2.630, 0.298),
-            new THREE.Vector3(2.238, 2.728, 7.050),
+            new THREE.Vector3(-7.722, 2.63, 0.298),
+            new THREE.Vector3(2.238, 2.728, 7.05),
             new THREE.Vector3(2.318, 2.699, 6.957),
-            new THREE.Vector3(-1.837, 0.111, 1.782)
+            new THREE.Vector3(-1.837, 0.111, 1.782),
         ];
 
         // Create a Pathfinding instance.
         this.pathfinder = new Pathfinding();
 
         // Define a zone name for the navigation mesh.
-        this.ZONE = 'dungeon';
+        this.ZONE = "dungeon";
 
         // Set zone data for pathfinding based on the Navmesh geometry.
-        this.pathfinder.setZoneData(this.ZONE, Pathfinding.createZone(this.navmesh.geometry));
+        this.pathfinder.setZoneData(
+            this.ZONE,
+            Pathfinding.createZone(this.navmesh.geometry)
+        );
     }
 
     // Initialize the game environment after loading the Ghoul and setting up pathfinding.
@@ -374,18 +377,18 @@ class App {
         const locations = [
             new THREE.Vector3(-0.409, 0.086, 4.038),
             new THREE.Vector3(-0.846, 0.112, 5.777),
-            new THREE.Vector3(5.220, 0.176, 2.677),
-            new THREE.Vector3(1.490, 2.305, -1.599),
+            new THREE.Vector3(5.22, 0.176, 2.677),
+            new THREE.Vector3(1.49, 2.305, -1.599),
             new THREE.Vector3(7.565, 2.694, 0.008),
             new THREE.Vector3(-8.417, 2.676, 0.192),
-            new THREE.Vector3(-6.644, 2.600, -4.114)
+            new THREE.Vector3(-6.644, 2.6, -4.114),
         ];
 
         const self = this;
 
         // Create teleportation points (TeleportMesh) at specified locations.
         this.teleports = [];
-        locations.forEach(location => {
+        locations.forEach((location) => {
             const teleport = new TeleportMesh();
             teleport.position.copy(location);
             self.scene.add(teleport);
@@ -418,14 +421,17 @@ class App {
         const controllerModelFactory = new XRControllerModelFactory();
 
         // Create a line to represent the controller's ray.
-        const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]);
+        const geometry = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(0, 0, -1),
+        ]);
         const line = new THREE.Line(geometry);
-        line.name = 'ray';
+        line.name = "ray";
         line.scale.z = 10;
 
         // Create a sphere marker for intersection testing.
         const geometry2 = new THREE.SphereGeometry(0.03, 8, 6);
-        const material = new THREE.MeshBasicMaterial({ color: 0xFF0000 });
+        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
         const controllers = [];
 
@@ -457,13 +463,19 @@ class App {
         function onSelectStart() {
             this.userData.selectPressed = true;
             if (this.userData.teleport) {
-                self.player.object.position.copy(this.userData.teleport.position);
-                self.teleports.forEach(teleport => teleport.fadeOut(0.5));
+                self.player.object.position.copy(
+                    this.userData.teleport.position
+                );
+                self.teleports.forEach((teleport) => teleport.fadeOut(0.5));
             } else if (this.userData.interactable) {
                 this.userData.interactable.play();
             } else if (this.marker.visible) {
                 const pos = this.userData.marker.position;
-                console.log(`${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)}`);
+                console.log(
+                    `${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(
+                        3
+                    )}`
+                );
             }
         }
 
@@ -473,12 +485,12 @@ class App {
 
         function onSqueezeStart() {
             this.userData.squeezePressed = true;
-            self.teleports.forEach(teleport => teleport.fadeIn(1));
+            self.teleports.forEach((teleport) => teleport.fadeIn(1));
         }
 
         function onSqueezeEnd() {
             this.userData.squeezePressed = false;
-            self.teleports.forEach(teleport => teleport.fadeOut(1));
+            self.teleports.forEach((teleport) => teleport.fadeOut(1));
         }
 
         // Create a button for entering VR mode.
@@ -488,29 +500,37 @@ class App {
         this.controllers = this.buildControllers();
 
         // Attach event listeners for controller interactions.
-        this.controllers.forEach(controller => {
-            controller.addEventListener('selectstart', onSelectStart);
-            controller.addEventListener('selectend', onSelectEnd);
-            controller.addEventListener('squeezestart', onSqueezeStart);
-            controller.addEventListener('squeezeend', onSqueezeEnd);
+        this.controllers.forEach((controller) => {
+            controller.addEventListener("selectstart", onSelectStart);
+            controller.addEventListener("selectend", onSelectEnd);
+            controller.addEventListener("squeezestart", onSqueezeStart);
+            controller.addEventListener("squeezeend", onSqueezeEnd);
         });
 
         // Create a list of collision objects for intersection testing.
         this.collisionObjects = [this.navmesh];
-        this.teleports.forEach(teleport => self.collisionObjects.push(teleport.children[0]));
-        this.interactables.forEach(interactable => self.collisionObjects.push(interactable.mesh));
+        this.teleports.forEach((teleport) =>
+            self.collisionObjects.push(teleport.children[0])
+        );
+        this.interactables.forEach((interactable) =>
+            self.collisionObjects.push(interactable.mesh)
+        );
     }
 
     // Function to intersect 3D objects with the controller's ray.
     intersectObjects(controller) {
-        const line = controller.getObjectByName('ray');
+        const line = controller.getObjectByName("ray");
         this.workingMatrix.identity().extractRotation(controller.matrixWorld);
 
         // Define the origin and direction of the ray.
         this.raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-        this.raycaster.ray.direction.set(0, 0, -1).applyMatrix4(this.workingMatrix);
+        this.raycaster.ray.direction
+            .set(0, 0, -1)
+            .applyMatrix4(this.workingMatrix);
 
-        const intersects = this.raycaster.intersectObjects(this.collisionObjects);
+        const intersects = this.raycaster.intersectObjects(
+            this.collisionObjects
+        );
         const marker = controller.userData.marker;
         marker.visible = false;
 
@@ -525,11 +545,16 @@ class App {
                 marker.scale.set(1, 1, 1);
                 marker.position.copy(intersect.point);
                 marker.visible = true;
-            } else if (intersect.object.parent && intersect.object.parent instanceof TeleportMesh) {
+            } else if (
+                intersect.object.parent &&
+                intersect.object.parent instanceof TeleportMesh
+            ) {
                 intersect.object.parent.selected = true;
                 controller.userData.teleport = intersect.object.parent;
             } else {
-                const tmp = this.interactables.filter(interactable => interactable.mesh == intersect.object);
+                const tmp = this.interactables.filter(
+                    (interactable) => interactable.mesh == intersect.object
+                );
 
                 if (tmp.length > 0) controller.userData.interactable = tmp[0];
             }
@@ -545,8 +570,8 @@ class App {
             object: target,
             speed: 5,
             app: this,
-            name: 'player',
-            npc: false
+            name: "player",
+            npc: false,
         };
 
         // Create a player character using the Player class.
@@ -582,24 +607,26 @@ class App {
         // Perform updates only when in XR mode.
         if (this.renderer.xr.isPresenting) {
             // Update teleportation points.
-            this.teleports.forEach(teleport => {
+            this.teleports.forEach((teleport) => {
                 teleport.selected = false;
                 teleport.update();
             });
 
             // Intersect objects with the controller's ray.
-            this.controllers.forEach(controller => {
+            this.controllers.forEach((controller) => {
                 self.intersectObjects(controller);
             });
 
             // Update interactable objects.
-            this.interactables.forEach(interactable => interactable.update(dt));
+            this.interactables.forEach((interactable) =>
+                interactable.update(dt)
+            );
 
             // Update the player character.
             this.player.update(dt);
 
             // Update Ghoul characters.
-            this.ghouls.forEach(ghoul => {
+            this.ghouls.forEach((ghoul) => {
                 ghoul.update(dt);
             });
         }
@@ -608,13 +635,11 @@ class App {
         this.renderer.render(this.scene, this.camera);
     }
 
-    // In this part of the code, we initialize pathfinding, set up XR (VR) for interaction, 
+    // In this part of the code, we initialize pathfinding, set up XR (VR) for interaction,
     // create the player character, and define the main rendering function for the scene.
-    // This section of code handles the core functionality of the application, including player movement, 
+    // This section of code handles the core functionality of the application, including player movement,
     // interaction, and rendering.
 }
 
 // Export the App class for use in other modules.
 export { App };
-
-}

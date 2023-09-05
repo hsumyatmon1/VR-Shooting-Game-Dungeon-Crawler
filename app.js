@@ -342,4 +342,279 @@ class App {
     // In this part of the code, we load the Ghoul character, configure its animations,
     // and set up cloning for the character to allow multiple instances to share animations correctly.
     // We also handle random waypoint generation for the character's initial positions.
+
+        // Initialize pathfinding by defining waypoints and creating a navigation zone.
+    initPathfinding() {
+        // Define a list of waypoints (positions) for pathfinding.
+        this.waypoints = [
+            new THREE.Vector3(8.689, 2.687, 0.349),
+            new THREE.Vector3(0.552, 2.589, -2.122),
+            new THREE.Vector3(-7.722, 2.630, 0.298),
+            new THREE.Vector3(2.238, 2.728, 7.050),
+            new THREE.Vector3(2.318, 2.699, 6.957),
+            new THREE.Vector3(-1.837, 0.111, 1.782)
+        ];
+
+        // Create a Pathfinding instance.
+        this.pathfinder = new Pathfinding();
+
+        // Define a zone name for the navigation mesh.
+        this.ZONE = 'dungeon';
+
+        // Set zone data for pathfinding based on the Navmesh geometry.
+        this.pathfinder.setZoneData(this.ZONE, Pathfinding.createZone(this.navmesh.geometry));
+    }
+
+    // Initialize the game environment after loading the Ghoul and setting up pathfinding.
+    initGame() {
+        // Create the player character.
+        this.player = this.createPlayer();
+
+        // Define teleport locations as 3D vectors.
+        const locations = [
+            new THREE.Vector3(-0.409, 0.086, 4.038),
+            new THREE.Vector3(-0.846, 0.112, 5.777),
+            new THREE.Vector3(5.220, 0.176, 2.677),
+            new THREE.Vector3(1.490, 2.305, -1.599),
+            new THREE.Vector3(7.565, 2.694, 0.008),
+            new THREE.Vector3(-8.417, 2.676, 0.192),
+            new THREE.Vector3(-6.644, 2.600, -4.114)
+        ];
+
+        const self = this;
+
+        // Create teleportation points (TeleportMesh) at specified locations.
+        this.teleports = [];
+        locations.forEach(location => {
+            const teleport = new TeleportMesh();
+            teleport.position.copy(location);
+            self.scene.add(teleport);
+            self.teleports.push(teleport);
+        });
+
+        // Set up XR (Extended Reality) for VR interaction.
+        this.setupXR();
+
+        // Set the loading flag to false, indicating that the environment is fully loaded.
+        this.loading = false;
+
+        // Start rendering the scene using the WebGLRenderer.
+        this.renderer.setAnimationLoop(this.render.bind(this));
+
+        // Hide the loading bar once everything is loaded.
+        this.loadingBar.visible = false;
+    }
+
+    // Create a marker for intersection testing between the ray and 3D objects.
+    createMarker(geometry, material) {
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.visible = false;
+        this.scene.add(mesh);
+        return mesh;
+    }
+
+    // Build XR controllers for VR interaction.
+    buildControllers() {
+        const controllerModelFactory = new XRControllerModelFactory();
+
+        // Create a line to represent the controller's ray.
+        const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]);
+        const line = new THREE.Line(geometry);
+        line.name = 'ray';
+        line.scale.z = 10;
+
+        // Create a sphere marker for intersection testing.
+        const geometry2 = new THREE.SphereGeometry(0.03, 8, 6);
+        const material = new THREE.MeshBasicMaterial({ color: 0xFF0000 });
+
+        const controllers = [];
+
+        for (let i = 0; i <= 1; i++) {
+            const controller = this.renderer.xr.getController(i);
+            controller.userData.index = i;
+            controller.userData.selectPressed = false;
+            controller.add(line.clone());
+            controller.userData.marker = this.createMarker(geometry2, material);
+            controllers.push(controller);
+            this.dolly.add(controller);
+
+            const grip = this.renderer.xr.getControllerGrip(i);
+            grip.add(controllerModelFactory.createControllerModel(grip));
+            this.dolly.add(grip);
+        }
+
+        return controllers;
+    }
+
+    // Set up XR for VR interaction and events.
+    setupXR() {
+        // Enable XR for the renderer.
+        this.renderer.xr.enabled = true;
+
+        const self = this;
+
+        // Define event handlers for controller interaction.
+        function onSelectStart() {
+            this.userData.selectPressed = true;
+            if (this.userData.teleport) {
+                self.player.object.position.copy(this.userData.teleport.position);
+                self.teleports.forEach(teleport => teleport.fadeOut(0.5));
+            } else if (this.userData.interactable) {
+                this.userData.interactable.play();
+            } else if (this.marker.visible) {
+                const pos = this.userData.marker.position;
+                console.log(`${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)}`);
+            }
+        }
+
+        function onSelectEnd() {
+            this.userData.selectPressed = false;
+        }
+
+        function onSqueezeStart() {
+            this.userData.squeezePressed = true;
+            self.teleports.forEach(teleport => teleport.fadeIn(1));
+        }
+
+        function onSqueezeEnd() {
+            this.userData.squeezePressed = false;
+            self.teleports.forEach(teleport => teleport.fadeOut(1));
+        }
+
+        // Create a button for entering VR mode.
+        const btn = new VRButton(this.renderer);
+
+        // Build XR controllers for both left and right hands.
+        this.controllers = this.buildControllers();
+
+        // Attach event listeners for controller interactions.
+        this.controllers.forEach(controller => {
+            controller.addEventListener('selectstart', onSelectStart);
+            controller.addEventListener('selectend', onSelectEnd);
+            controller.addEventListener('squeezestart', onSqueezeStart);
+            controller.addEventListener('squeezeend', onSqueezeEnd);
+        });
+
+        // Create a list of collision objects for intersection testing.
+        this.collisionObjects = [this.navmesh];
+        this.teleports.forEach(teleport => self.collisionObjects.push(teleport.children[0]));
+        this.interactables.forEach(interactable => self.collisionObjects.push(interactable.mesh));
+    }
+
+    // Function to intersect 3D objects with the controller's ray.
+    intersectObjects(controller) {
+        const line = controller.getObjectByName('ray');
+        this.workingMatrix.identity().extractRotation(controller.matrixWorld);
+
+        // Define the origin and direction of the ray.
+        this.raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+        this.raycaster.ray.direction.set(0, 0, -1).applyMatrix4(this.workingMatrix);
+
+        const intersects = this.raycaster.intersectObjects(this.collisionObjects);
+        const marker = controller.userData.marker;
+        marker.visible = false;
+
+        controller.userData.teleport = undefined;
+        controller.userData.interactable = undefined;
+
+        if (intersects.length > 0) {
+            const intersect = intersects[0];
+            line.scale.z = intersect.distance;
+
+            if (intersect.object === this.navmesh) {
+                marker.scale.set(1, 1, 1);
+                marker.position.copy(intersect.point);
+                marker.visible = true;
+            } else if (intersect.object.parent && intersect.object.parent instanceof TeleportMesh) {
+                intersect.object.parent.selected = true;
+                controller.userData.teleport = intersect.object.parent;
+            } else {
+                const tmp = this.interactables.filter(interactable => interactable.mesh == intersect.object);
+
+                if (tmp.length > 0) controller.userData.interactable = tmp[0];
+            }
+        }
+    }
+
+    // Create the player character with a target, camera, and dolly setup.
+    createPlayer() {
+        const target = new THREE.Object3D();
+        target.position.set(-3, 0.25, 2);
+
+        const options = {
+            object: target,
+            speed: 5,
+            app: this,
+            name: 'player',
+            npc: false
+        };
+
+        // Create a player character using the Player class.
+        const player = new Player(options);
+
+        // Create a dolly to control the camera and attach it to the player.
+        this.dolly = new THREE.Object3D();
+        this.dolly.position.set(0, -0.25, 0);
+        this.dolly.add(this.camera);
+
+        this.dummyCam = new THREE.Object3D();
+        this.camera.add(this.dummyCam);
+
+        target.add(this.dolly);
+
+        this.dolly.rotation.y = Math.PI;
+
+        return player;
+    }
+
+    // Main rendering function for the scene.
+    render() {
+        const dt = this.clock.getDelta();
+        const self = this;
+
+        // Update the position of the sun based on the camera's position.
+        this.sun.position.copy(this.dummyCam.position);
+        this.sun.position.y += 10;
+        this.sun.position.z += 10;
+
+        this.stats.update();
+
+        // Perform updates only when in XR mode.
+        if (this.renderer.xr.isPresenting) {
+            // Update teleportation points.
+            this.teleports.forEach(teleport => {
+                teleport.selected = false;
+                teleport.update();
+            });
+
+            // Intersect objects with the controller's ray.
+            this.controllers.forEach(controller => {
+                self.intersectObjects(controller);
+            });
+
+            // Update interactable objects.
+            this.interactables.forEach(interactable => interactable.update(dt));
+
+            // Update the player character.
+            this.player.update(dt);
+
+            // Update Ghoul characters.
+            this.ghouls.forEach(ghoul => {
+                ghoul.update(dt);
+            });
+        }
+
+        // Render the scene using the renderer.
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    // In this part of the code, we initialize pathfinding, set up XR (VR) for interaction, 
+    // create the player character, and define the main rendering function for the scene.
+    // This section of code handles the core functionality of the application, including player movement, 
+    // interaction, and rendering.
+}
+
+// Export the App class for use in other modules.
+export { App };
+
 }

@@ -1,6 +1,5 @@
 {
     "dependencies": {
-        "node": "^20.5.1",
-        "type": "module"
+        "node": "^20.5.1"
     }
 }

@@ -209,4 +209,137 @@ class App {
     // In this part of the code, we handle resizing the viewport,
     // setting up the 3D environment's background, and loading the dungeon environment.
     // We also create interactable objects like chest lids and doors within the environment.
+
+    // Load the Ghoul character from a GLTF model.
+    loadGhoul() {
+        const loader = new GLTFLoader().setPath(this.assetsPath);
+        const self = this;
+
+        // Define animations for the Ghoul character.
+        const anims = [
+            { start: 81, end: 161, name: "idle", loop: true },
+            { start: 250, end: 290, name: "block", loop: false },
+            { start: 300, end: 320, name: "gethit", loop: false },
+            { start: 340, end: 375, name: "die", loop: false },
+            { start: 380, end: 430, name: "attack", loop: false },
+            { start: 470, end: 500, name: "walk", loop: true },
+            { start: 540, end: 560, name: "run", loop: true },
+        ];
+
+        // Load the Ghoul character GLTF resource.
+        loader.load(
+            `ghoul.glb`,
+            function (gltf) {
+                const gltfs = [gltf];
+                for (let i = 0; i < 3; i++) gltfs.push(self.cloneGLTF(gltf));
+
+                self.ghouls = [];
+
+                gltfs.forEach(function (gltf) {
+                    const object = gltf.scene.children[0];
+
+                    // Traverse the character object to set it to cast shadows.
+                    object.traverse(function (child) {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                        }
+                    });
+
+                    // Configure options for creating a Ghoul character.
+                    const options = {
+                        object: object,
+                        speed: 0.8,
+                        assetsPath: self.assetsPath,
+                        loader: loader,
+                        anims: anims,
+                        clip: gltf.animations[0],
+                        app: self,
+                        name: "ghoul",
+                        npc: true,
+                    };
+
+                    // Create a Ghoul character using the Player class.
+                    const ghoul = new Player(options);
+
+                    // Set the scale for the Ghoul character.
+                    const scale = 0.01;
+                    ghoul.object.scale.set(scale, scale, scale);
+
+                    // Position the Ghoul character at a random waypoint.
+                    ghoul.object.position.copy(self.randomWaypoint);
+                    ghoul.newPath(self.randomWaypoint);
+
+                    // Add the Ghoul character to the list of Ghouls in the scene.
+                    self.ghouls.push(ghoul);
+                });
+
+                // Initialize the game environment after loading the Ghoul.
+                self.initGame();
+            },
+            function (xhr) {
+                self.loadingBar.progress = (xhr.loaded / xhr.total) * 0.5 + 0.5;
+            },
+            function (error) {
+                console.error(error.message);
+            }
+        );
+    }
+
+    // Function to clone a GLTF model to ensure multiple instances share animations correctly.
+    cloneGLTF(gltf) {
+        const clone = {
+            animations: gltf.animations,
+            scene: gltf.scene.clone(true),
+        };
+
+        const skinnedMeshes = {};
+
+        // Traverse the cloned scene to find skinned meshes.
+        gltf.scene.traverse((node) => {
+            if (node.isSkinnedMesh) {
+                skinnedMeshes[node.name] = node;
+            }
+        });
+
+        const cloneBones = {};
+        const cloneSkinnedMeshes = {};
+
+        // Traverse the original scene to find bones and skinned meshes.
+        clone.scene.traverse((node) => {
+            if (node.isBone) {
+                cloneBones[node.name] = node;
+            }
+            if (node.isSkinnedMesh) {
+                cloneSkinnedMeshes[node.name] = node;
+            }
+        });
+
+        // Bind the cloned skinned meshes with the cloned bones.
+        for (let name in skinnedMeshes) {
+            const skinnedMesh = skinnedMeshes[name];
+            const skeleton = skinnedMesh.skeleton;
+            const cloneSkinnedMesh = cloneSkinnedMeshes[name];
+            const orderedCloneBones = [];
+            for (let i = 0; i < skeleton.bones.length; ++i) {
+                const cloneBone = cloneBones[skeleton.bones[i].name];
+                orderedCloneBones.push(cloneBone);
+            }
+            cloneSkinnedMesh.bind(
+                new THREE.Skeleton(orderedCloneBones, skeleton.boneInverses),
+                cloneSkinnedMesh.matrixWorld
+            );
+        }
+
+        return clone;
+    }
+
+    // Function to get a random waypoint from a predefined list.
+    get randomWaypoint() {
+        const index = Math.floor(Math.random() * this.waypoints.length);
+        return this.waypoints[index];
+    }
+
+    // In this part of the code, we load the Ghoul character, configure its animations,
+    // and set up cloning for the character to allow multiple instances to share animations correctly.
+    // We also handle random waypoint generation for the character's initial positions.
 }

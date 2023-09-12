@@ -1,25 +1,23 @@
-const THREE = require("/libs/three/three.module.js");
-const { GLTFLoader } = require("/libs/three/jsm/GLTFLoader.js");
-const { DRACOLoader } = require("/libs/three/jsm/DRACOLoader.js");
-const { RGBELoader } = require("/libs/three/jsm/RGBELoader.js");
-const {
-    XRControllerModelFactory,
-} = require("/libs/three/jsm/XRControllerModelFactory.js");
-const { Pathfinding } = require("/libs/three/jsm/three-pathfinding.module.js");
-const { Stats } = require("/libs/stats.module.js");
-const { VRButton } = require("/libs/VRButton.js");
-const { TeleportMesh } = require("/libs/TeleportMesh.js");
-const { Interactable } = require("/libs/Interactable.js");
-const { Player } = require("/libs/Player.js");
-const { LoadingBar } = require("/libs/LoadingBar.js");
-const { Bullet } = require("./js/bullet.js");
+import * as THREE from "./libs/three/three.module.js";
+import { GLTFLoader } from "./libs/three/jsm/GLTFLoader.js";
+import { DRACOLoader } from "./libs/three/jsm/DRACOLoader.js";
+import { RGBELoader } from "./libs/three/jsm/RGBELoader.js";
+import { XRControllerModelFactory } from "./libs/three/jsm/XRControllerModelFactory.js";
+import { Pathfinding } from "./libs/three/jsm/three-pathfinding.module.js";
+import { Stats } from "./libs/stats.module.js";
+import { VRButton } from "./libs/VRButton.js";
+import { TeleportMesh } from "./libs/TeleportMesh.js";
+import { Interactable } from "./libs/Interactable.js";
+import { Player } from "./libs/Player.js";
+import { LoadingBar } from "./libs/LoadingBar.js";
+import { Bullet } from "./js/bullet.js";
 
 class App {
     constructor() {
         const container = document.createElement("div");
         document.body.appendChild(container);
 
-        this.assetsPath = "/assets/";
+        this.assetsPath = "./assets/";
 
         this.camera = new THREE.PerspectiveCamera(
             45,
@@ -94,7 +92,7 @@ class App {
         const self = this;
 
         loader.load(
-            "/assets/hdr/venice_sunset_1k.hdr",
+            "./assets/hdr/venice_sunset_1k.hdr",
             (texture) => {
                 const envMap =
                     pmremGenerator.fromEquirectangular(texture).texture;
@@ -216,11 +214,11 @@ class App {
                 gltfs.forEach(function (gltf) {
                     const object = gltf.scene.children[0];
 
-                    // object.traverse(function (child) {
-                    //     if (child.isMesh) {
-                    //         child.castShadow = true;
-                    //     }
-                    // });
+                    object.traverse(function (child) {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                        }
+                    });
 
                     const options = {
                         object: object,
@@ -306,7 +304,7 @@ class App {
     loadGun() {
         const loader = new GLTFLoader().setPath(this.assetsPath);
         const dracoLoader = new DRACOLoader();
-        dracoLoader.setDecoderPath("/libs/three/js/draco/");
+        dracoLoader.setDecoderPath("./libs/three/js/draco/");
         loader.setDRACOLoader(dracoLoader);
 
         const self = this;
@@ -727,4 +725,4 @@ class App {
     }
 }
 
-module.exports = { App };
+export { App };

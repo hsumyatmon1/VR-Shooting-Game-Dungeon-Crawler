@@ -17,7 +17,7 @@ const filesToCache = [
     "./sfx/swish.mp3",
     "./js/index.js",
     "./libs/three/three.module.js",
-    "./libs/three/jsm/GLTFLoader.js", 
+    "./libs/three/jsm/GLTFLoader.js",
     "./libs/three/jsm/RGBELoader.js",
     "./libs/three/jsm/XRControllerModelFactory.js",
     "./libs/three/jsm/three-pathfinding.module.js",
@@ -27,6 +27,18 @@ const filesToCache = [
     "./libs/Interactable.js",
     "./libs/Player.js",
     "./libs/LoadingBar.js",
+    "./libs/three/three.module.js",
+    "./libs/three/jsm/DRACOLoader.js",
+    "./libs/three/jsm/RGBELoader.js",
+    "./libs/three/jsm/XRControllerModelFactory.js",
+    "./libs/three/jsm/three-pathfinding.module.js",
+    "./libs/stats.module.js",
+    "./libs/VRButton.js",
+    "./libs/TeleportMesh.js",
+    "./libs/Interactable.js",
+    "./libs/Player.js",
+    "./libs/LoadingBar.js",
+    "./js/bullet.js",
 ];
 
 // Install the service worker and cache the app's assets.

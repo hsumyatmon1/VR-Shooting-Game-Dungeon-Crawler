@@ -17,7 +17,7 @@
             body {
                 margin: 0;
                 padding: 0;
-            } 
+            }
 
         </style>
     </head>
@@ -29,7 +29,7 @@
         <!-- JavaScript code that will run when the DOM is fully loaded -->
         <script type="module">
             // Import the "App" class from the "app.js" file
-            import { App } from './app.js';
+            const { App } = require("./app.js");
 
             // Add an event listener for the "DOMContentLoaded" event, which fires when the HTML document has been fully loaded and parsed
             document.addEventListener("DOMContentLoaded", function () {

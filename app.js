@@ -815,4 +815,4 @@ class App {
 }
 
 // Export the App class for use in other modules.
-export { App };
+module.exports = { App };

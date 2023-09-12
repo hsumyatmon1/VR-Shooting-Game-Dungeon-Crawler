@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import * as THREE from "../../libs/three/three.module.js";
 import { GLTFLoader } from "../../libs/three/jsm/GLTFLoader.js";
 import { DRACOLoader } from "../../libs/three/jsm/DRACOLoader.js";
@@ -12,35 +11,13 @@ import { Interactable } from "../../libs/Interactable.js";
 import { Player } from "../../libs/Player.js";
 import { LoadingBar } from "../../libs/LoadingBar.js";
 import { Bullet } from "./js/bullet.js";
-=======
-// Importing necessary modules from external libraries.
-const THREE = require("./libs/three/three.module.js");
-const { GLTFLoader } = require("./libs/three/jsm/GLTFLoader.js");
-const { RGBELoader } = require("./libs/three/jsm/RGBELoader.js");
-const {
-    XRControllerModelFactory,
-} = require("./libs/three/jsm/XRControllerModelFactory.js");
-const { Pathfinding } = require("./libs/three/jsm/three-pathfinding.module.js");
-const { Stats } = require("./libs/stats.module.js");
-const { VRButton } = require("./libs/VRButton.js");
-const { TeleportMesh } = require("./libs/TeleportMesh.js");
-const { Interactable } = require("./libs/Interactable.js");
-const { Player } = require("./libs/Player.js");
-const { LoadingBar } = require("./libs/LoadingBar.js");
-const { Bullet } = require("./js/bullet.js");
->>>>>>> bfb5081b2ed844fd0349d3489cc4a4a883c878cd
 
 class App {
     constructor() {
         const container = document.createElement("div");
         document.body.appendChild(container);
 
-<<<<<<< HEAD
         this.assetsPath = "../../assets/";
-=======
-        // Define a path to the assets directory.
-        this.assetsPath = "./assets/";
->>>>>>> bfb5081b2ed844fd0349d3489cc4a4a883c878cd
 
         this.camera = new THREE.PerspectiveCamera(
             45,
@@ -115,7 +92,7 @@ class App {
         const self = this;
 
         loader.load(
-            "./assets/hdr/venice_sunset_1k.hdr",
+            "../../assets/hdr/venice_sunset_1k.hdr",
             (texture) => {
                 const envMap =
                     pmremGenerator.fromEquirectangular(texture).texture;
@@ -551,178 +528,6 @@ class App {
         return controllers;
     }
 
-<<<<<<< HEAD
-=======
-    // This function loads a 3D model of a gun using GLTFLoader, along with its associated audio and sets up interactions.
-    loadGun() {
-        // Create a GLTFLoader and set the path for loading assets.
-        const loader = new GLTFLoader().setPath(this.assetsPath);
-
-        // Create a DRACOLoader for decoding compressed geometry files (optional).
-        const dracoLoader = new DRACOLoader();
-        dracoLoader.setDecoderPath("./libs/three/js/draco/");
-
-        // Set the DRACOLoader for the main loader.
-        loader.setDRACOLoader(dracoLoader);
-
-        const self = this; // Store a reference to the current object for later use.
-
-        // Load a GLTF resource.
-        loader.load(
-            // Resource URL for the 3D model.
-            `flare-gun.glb`,
-            // Function called when the resource is successfully loaded.
-            function (gltf) {
-                // Store the loaded gun 3D model in the current object.
-                self.gun = gltf.scene;
-                self.gun.position.set(-0.43, 0.877, 3.013); // Set the gun's position.
-                self.gun.rotateX(Math.PI / 2); // Rotate the gun.
-
-                // Add the gun to the 3D scene.
-                self.scene.add(self.gun);
-
-                // Find and add the bullet object from the loaded 3D model.
-                const bullet = gltf.scene.getObjectByName("Bullet");
-                self.scene.add(bullet);
-
-                // Create a new Bullet instance with the gun and target objects.
-                self.bullet = new Bullet(bullet, {
-                    gun: self.gun,
-                    targets,
-                });
-
-                // Add an event listener for when a bullet hits a target.
-                self.bullet.addEventListener("hit", (ev) => {
-                    // Find the hit target and perform actions.
-                    const tmp = self.ghouls.filter(
-                        (ghoul) => ev.hitObject == ghoul.object.children[1]
-                    );
-                    if (tmp.length > 0) {
-                        // Play a sound when a target is hit.
-                        self.sounds.snarl.play();
-                        const ghoul = tmp[0];
-                        ghoul.action = "die";
-                        ghoul.dead = true;
-                        ghoul.calculatedPath = null;
-                        ghoul.curAction.loop = THREE.LoopOnce;
-                        ghoul.curAction.clampWhenFinished = true;
-                        // Remove the target from the scene when the animation finishes.
-                        ghoul.mixer.addEventListener("finished", (e) => {
-                            self.scene.remove(ghoul.object);
-                            self.ghouls.splice(self.ghouls.indexOf(ghoul), 1);
-                        });
-                    }
-                });
-
-                // Initialize the game after loading.
-                self.initGame();
-            },
-            // Function called while loading is in progress (for progress tracking).
-            function (xhr) {
-                self.loadingBar.progress =
-                    (xhr.loaded / xhr.total) * 0.33 + 0.66;
-            },
-            // Function called when loading encounters errors.
-            function (error) {
-                console.error(error.message);
-            }
-        );
-    }
-
-    // This function loads audio resources.
-    loadAudio() {
-        if (this.audioListener === undefined) {
-            // Create an audio listener and attach it to the camera.
-            this.audioListener = new THREE.AudioListener();
-            this.camera.add(this.audioListener);
-            this.sounds = {};
-
-            this.audio = {
-                index: 0,
-                names: ["ambient", "shot", "snarl", "swish"],
-            };
-        }
-
-        const name = this.audio.names[this.audio.index];
-
-        const loader = new THREE.AudioLoader();
-        const self = this;
-
-        // Load an audio resource.
-        loader.load(
-            // Resource URL for the audio file.
-            `/assets/sfx/${name}.mp3`,
-            // Function called when the audio resource is successfully loaded.
-            function (audioBuffer) {
-                // Create an audio object and set its buffer.
-                let snd;
-                if (name === "snarl") {
-                    snd = new THREE.PositionalAudio(self.audioListener);
-                } else {
-                    snd = new THREE.Audio(self.audioListener);
-                    self.scene.add(snd);
-                    if (name === "ambient") {
-                        snd.setLoop(true);
-                        snd.setVolume(0.5);
-                    }
-                }
-                snd.setBuffer(audioBuffer);
-
-                // Play the ambient audio.
-                if (name === "ambient") snd.play();
-
-                // Store the audio object in the sounds object.
-                self.sounds[name] = snd;
-
-                self.audio.index++;
-
-                // If there are more audio resources to load, continue loading.
-                if (self.audio.index < self.audio.names.length) {
-                    self.loadAudio();
-                }
-            },
-            // Function called while loading audio is in progress (for progress tracking).
-            function (xhr) {
-                const peraudio = 0.25 / self.audio.length;
-                self.loadingBar.progress =
-                    (xhr.loaded / xhr.total + self.audio.index) * peraudio +
-                    0.75;
-            },
-            // Function called when loading audio encounters errors.
-            function (err) {
-                console.log("An error happened");
-            }
-        );
-    }
-
-    // This getter returns a random waypoint from a list of waypoints.
-    get randomWaypoint() {
-        const index = Math.floor(Math.random() * this.waypoints.length);
-        return this.waypoints[index];
-    }
-
-    // This function allows picking up a gun by attaching it to a controller.
-    pickupGun(controller = this.controllers[0]) {
-        // Reset the gun's position and rotation.
-        this.gun.position.set(0, 0, 0);
-        this.gun.quaternion.identity();
-
-        // Hide the gun's mesh on the controller.
-        controller.children[0].visible = false;
-
-        // Attach the gun to the controller.
-        controller.add(this.gun);
-
-        // Set a user data flag to indicate that the controller is holding the gun.
-        controller.userData.gun = true;
-
-        // Remove the grip object from the controller.
-        const grip = controller.userData.grip;
-        this.dolly.remove(grip);
-    }
-
-    // Set up XR for VR interaction and events.
->>>>>>> bfb5081b2ed844fd0349d3489cc4a4a883c878cd
     setupXR() {
         this.renderer.xr.enabled = true;
 
@@ -920,9 +725,4 @@ class App {
     }
 }
 
-<<<<<<< HEAD
 export { App };
-=======
-// Export the App class for use in other modules.
-module.exports = { App };
->>>>>>> bfb5081b2ed844fd0349d3489cc4a4a883c878cd

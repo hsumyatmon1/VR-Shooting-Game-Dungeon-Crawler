@@ -1,19 +1,17 @@
 // Importing necessary modules from external libraries.
-const THREE = require("../../libs/three/three.module");
-const { GLTFLoader } = require("../../libs/three/jsm/GLTFLoader.js");
-const { RGBELoader } = require("../../libs/three/jsm/RGBELoader.js");
+const THREE = require("./libs/three/three.module.js");
+const { GLTFLoader } = require("./libs/three/jsm/GLTFLoader.js");
+const { RGBELoader } = require("./libs/three/jsm/RGBELoader.js");
 const {
     XRControllerModelFactory,
-} = require("../../libs/three/jsm/XRControllerModelFactory.js");
-const {
-    Pathfinding,
-} = require("../../libs/three/jsm/three-pathfinding.module.js");
-const { Stats } = require("../../libs/stats.module.js");
-const { VRButton } = require("../../libs/VRButton.js");
-const { TeleportMesh } = require("../../libs/TeleportMesh.js");
-const { Interactable } = require("../../libs/Interactable.js");
-const { Player } = require("../../libs/Player.js");
-const { LoadingBar } = require("../../libs/LoadingBar.js");
+} = require("./libs/three/jsm/XRControllerModelFactory.js");
+const { Pathfinding } = require("./libs/three/jsm/three-pathfinding.module.js");
+const { Stats } = require("./libs/stats.module.js");
+const { VRButton } = require("./libs/VRButton.js");
+const { TeleportMesh } = require("./libs/TeleportMesh.js");
+const { Interactable } = require("./libs/Interactable.js");
+const { Player } = require("./libs/Player.js");
+const { LoadingBar } = require("./libs/LoadingBar.js");
 const { Bullet } = require("./js/bullet.js");
 
 // Define a JavaScript class named "App".
@@ -25,7 +23,7 @@ class App {
         document.body.appendChild(container);
 
         // Define a path to the assets directory.
-        this.assetsPath = "../../assets/";
+        this.assetsPath = "./assets/";
 
         // Create a 3D perspective camera with specific parameters.
         this.camera = new THREE.PerspectiveCamera(
@@ -117,7 +115,7 @@ class App {
 
         // Load the HDR environment map and set it as the scene's environment.
         loader.load(
-            "../../assets/hdr/venice_sunset_1k.hdr",
+            "./assets/hdr/venice_sunset_1k.hdr",
             (texture) => {
                 const envMap =
                     pmremGenerator.fromEquirectangular(texture).texture;
@@ -464,7 +462,7 @@ class App {
 
         // Create a DRACOLoader for decoding compressed geometry files (optional).
         const dracoLoader = new DRACOLoader();
-        dracoLoader.setDecoderPath("../../libs/three/js/draco/");
+        dracoLoader.setDecoderPath("./libs/three/js/draco/");
 
         // Set the DRACOLoader for the main loader.
         loader.setDRACOLoader(dracoLoader);

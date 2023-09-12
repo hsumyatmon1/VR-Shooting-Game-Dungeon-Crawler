@@ -1,16 +1,20 @@
 // Importing necessary modules from external libraries.
 const THREE = require("../../libs/three/three.module.js");
-import { GLTFLoader } from "../../libs/three/jsm/GLTFLoader.js";
-import { RGBELoader } from "../../libs/three/jsm/RGBELoader.js";
-import { XRControllerModelFactory } from "../../libs/three/jsm/XRControllerModelFactory.js";
-import { Pathfinding } from "../../libs/three/jsm/three-pathfinding.module.js";
-import { Stats } from "../../libs/stats.module.js";
-import { VRButton } from "../../libs/VRButton.js";
-import { TeleportMesh } from "../../libs/TeleportMesh.js";
-import { Interactable } from "../../libs/Interactable.js";
-import { Player } from "../../libs/Player.js";
-import { LoadingBar } from "../../libs/LoadingBar.js";
-import { Bullet } from "./js/bullet.js";
+const { GLTFLoader } = require("../../libs/three/jsm/GLTFLoader.js");
+const { RGBELoader } = require("../../libs/three/jsm/RGBELoader.js");
+const {
+    XRControllerModelFactory,
+} = require("../../libs/three/jsm/XRControllerModelFactory.js");
+const {
+    Pathfinding,
+} = require("../../libs/three/jsm/three-pathfinding.module.js");
+const { Stats } = require("../../libs/stats.module.js");
+const { VRButton } = require("../../libs/VRButton.js");
+const { TeleportMesh } = require("../../libs/TeleportMesh.js");
+const { Interactable } = require("../../libs/Interactable.js");
+const { Player } = require("../../libs/Player.js");
+const { LoadingBar } = require("../../libs/LoadingBar.js");
+const { Bullet } = require("./js/bullet.js");
 
 // Define a JavaScript class named "App".
 class App {

@@ -14,7 +14,7 @@ const filesToCache = [
     "./assets/sfx",
     "./js/index.js",
     "./libs/three/three.module.js",
-    "./libs/three/jsm/GLTFLoader.js",
+    "./libs/three/jsm/GLTFLoader.js", 
     "./libs/three/jsm/RGBELoader.js",
     "./libs/three/jsm/XRControllerModelFactory.js",
     "./libs/three/jsm/three-pathfinding.module.js",

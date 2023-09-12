@@ -1,5 +1,5 @@
 // Importing necessary modules from external libraries.
-import * as THREE from "../../libs/three/three.module.js";
+const THREE = require("../../libs/three/three.module.js");
 import { GLTFLoader } from "../../libs/three/jsm/GLTFLoader.js";
 import { RGBELoader } from "../../libs/three/jsm/RGBELoader.js";
 import { XRControllerModelFactory } from "../../libs/three/jsm/XRControllerModelFactory.js";

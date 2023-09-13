@@ -387,7 +387,7 @@ class App {
         // load a resource
         loader.load(
             // resource URL
-            `sfx/${name}.mp3`,
+            `assets/sfx/${name}.mp3`,
 
             // onLoad callback
             function (audioBuffer) {

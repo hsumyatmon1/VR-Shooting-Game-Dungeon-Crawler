@@ -29,13 +29,13 @@ class App {
 
         this.scene = new THREE.Scene();
 
-        const ambient = new THREE.HemisphereLight(0x555555, 0x999999);
-        this.scene.add(ambient);
+        // const ambient = new THREE.HemisphereLight(0x555555, 0x999999);
+        // this.scene.add(ambient);
 
-        this.sun = new THREE.DirectionalLight(0xaaaaff, 2.5);
+        this.sun = new THREE.DirectionalLight(0xaaaaff, 1.5);
         this.sun.castShadow = true;
 
-        const lightSize = 5;
+        const lightSize = 2;
         this.sun.shadow.camera.near = 0.1;
         this.sun.shadow.camera.far = 17;
         this.sun.shadow.camera.left = this.sun.shadow.camera.bottom =
